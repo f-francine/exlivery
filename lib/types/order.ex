@@ -3,6 +3,9 @@ defmodule Exlivery.Types.Order do
   Represents an order that will be make by the user.
   """
 
+  alias Exlivery.Types.Item
+  alias Exlivery.Types.User
+
   @enforce_keys [:user_cpf, :delivery_address, :items, :total_price]
 
   defstruct [:id] ++ @enforce_keys
@@ -18,18 +21,23 @@ defmodule Exlivery.Types.Order do
   @spec build(
           user_cpf :: String,
           delivery_address :: String,
-          items :: List,
-          total_price :: integer()
+          items :: List
         ) :: {:ok, t()} | {:error, :invalid_params}
-  def build(user_cpf, delivery_address, items, total_price) when is_integer(total_price) do
-    {:ok, %__MODULE__{
-      id: UUID.uuid4(),
-      user_cpf: user_cpf,
-      delivery_address: delivery_address,
-      items: items,
-      total_price: Decimal.cast(total_price)
-    }}
+  def build(%User{cpf: cpf}, delivery_address, [%Item{} | _] = items) do
+    {:ok,
+     %__MODULE__{
+       id: UUID.uuid4(),
+       user_cpf: cpf,
+       delivery_address: delivery_address,
+       items: items,
+       total_price: total_price(items)
+     }}
   end
 
-  def build(_user_cpf, _delivery_address, _items, _total_price), do: {:error, :invalid_params}
+  def build(_user_cpf, _delivery_address, _items), do: {:error, :invalid_params}
+
+  defp total_price(items), do: Enum.reduce(items, Decimal.new("0.00"), &sum_prices/2)
+
+  defp sum_prices(%Item{unity_price: unity_price, quantity: quantity}, acc),
+    do: Decimal.add(Item.total_price(unity_price, quantity), acc)
 end

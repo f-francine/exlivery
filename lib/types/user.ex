@@ -7,12 +7,12 @@ defmodule Exlivery.Types.User do
   defstruct [:id] ++ @enforce_keys
 
   @type t :: %__MODULE__{
-    id: UUID,
-    name: String,
-    email: String,
-    cpf: String,
-    birthdate: Date
-  }
+          id: UUID,
+          name: String,
+          email: String,
+          cpf: String,
+          birthdate: Date
+        }
 
   @doc """
   ## Examples
@@ -28,20 +28,21 @@ defmodule Exlivery.Types.User do
     birthdate: ~D[2000-09-09]
   }
   """
-  @spec build(name :: String, email :: String, cpf :: String, birthdate :: String) :: {:ok, t()} | {:error, reason :: atom()}
+  @spec build(name :: String, email :: String, cpf :: String, birthdate :: String) ::
+          {:ok, t()} | {:error, reason :: atom()}
   def build(name, email, cpf, birthdate) do
     with {:ok, date} <- valid_birthdate?(birthdate),
          {:email, true} <- {:email, valid_email?(email)},
          {:ok, :ok} <- valid_cpf?(cpf) do
-     {:ok,  %__MODULE__{
-        id: UUID.uuid4(),
-        name: name,
-        email: email,
-        cpf: cpf,
-        birthdate: date
-      }}
-
-     else
+      {:ok,
+       %__MODULE__{
+         id: UUID.uuid4(),
+         name: name,
+         email: email,
+         cpf: cpf,
+         birthdate: date
+       }}
+    else
       {:email, false} -> {:error, :invalid_email}
       {:error, _reason} = error -> error
     end
