@@ -68,7 +68,7 @@ defmodule Exlivery.Types.User do
     {:ok, date} = Date.new(y, m, d)
     user_age = Date.diff(Date.utc_today(), date) / 365
 
-    if user_age >= 18, do: {:ok, date}, else: {:error, :user_too_young}
+    if user_age >= 16, do: {:ok, date}, else: {:error, :user_too_young}
   end
 
   defp valid_cpf?(cpf) do
