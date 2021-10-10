@@ -1,21 +1,22 @@
-defmodule ExliveryTest do
+defmodule Exlivery.UserTest do
+  @moduledoc false
+
   use ExUnit.Case
 
   alias Exlivery.Types.User
+
+  import Exlivery.Factory
+
   doctest User
 
   setup do
-    %{name: "Amy Santiago", email: "amy@nbc.com", cpf: "98909076545", birthdate: "1991/09/09"}
+    build(:user)
   end
 
   test "when all params are valid, creates an user", ctx do
-    assert {:ok,
-            %Exlivery.Types.User{
-              birthdate: ~D[1991-09-09],
-              cpf: "98909076545",
-              email: "amy@nbc.com",
-              name: "Amy Santiago"
-            }} = User.build(ctx.name, ctx.email, ctx.cpf, ctx.birthdate)
+    response = build(:user)
+
+    assert response = User.build(ctx.name, ctx.email, ctx.cpf, ctx.birthdate)
   end
 
   test "should return an error when user age is less then 16", ctx do
