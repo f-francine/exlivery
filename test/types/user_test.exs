@@ -1,4 +1,4 @@
-defmodule Exlivery.UserTest do
+defmodule Exlivery.Types.UserTest do
   @moduledoc false
 
   use ExUnit.Case

@@ -26,7 +26,7 @@ defmodule Exlivery.Types.Item do
   def build(name, quantity, unity_price, description \\ "", details \\ "")
 
   def build(name, quantity, unity_price, description, details)
-      when is_integer(quantity) do
+      when is_integer(quantity) and is_binary(unity_price) do
     {:ok,
      %__MODULE__{
        id: UUID.uuid4(),
