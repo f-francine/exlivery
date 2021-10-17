@@ -3,6 +3,8 @@ defmodule Exlivery.Types.User do
   Entity that can be used to order an item.
   """
 
+  alias Exlivery.UserAgent
+
   @enforce_keys [:name, :email, :cpf, :birthdate]
   defstruct [:id] ++ @enforce_keys
 
@@ -14,23 +16,30 @@ defmodule Exlivery.Types.User do
           birthdate: Date
         }
 
-  @doc """
-  ## Examples
+  @spec create(name :: String, email :: String, cpf :: String, birthdate :: String) ::
+          {:ok, :user_created}
+          | {:error, :invalid_cpf | :invalid_date_format | :invalid_email | :user_too_young}
+  def create(name, email, cpf, birthdate) do
+    with {:ok, user} <- build(name, email, cpf, birthdate),
+         {:ok} <- UserAgent.save(user) do
+      {:ok, :user_created}
+    else
+      error -> error
+    end
+  end
 
-  ```elixir
-  iex> Exlivery.Types.User.build("Alicia Keys", "ak@email.com", "98756672461", "2000/09/09")
+  @spec update(cpf :: String, data :: map()) :: {:ok, t()} | {:error, reason :: atom()}
+  def update(cpf, data) do
+    with {:ok, user} <- UserAgent.get(cpf),
+         data <- Map.merge(data, user),
+         {:ok, user_updated} = d <- UserAgent.save(data) do
+      {:ok, data}
+    else
+      error -> error
+    end
+  end
 
-  %Exlivery.Types.User{
-    id: #{UUID.uuid4()},
-    name: "Alicia Keys",
-    email: "ak@email.com",
-    cpf: "98756672461",
-    birthdate: ~D[2000-09-09]
-  }
-  """
-  @spec build(name :: String, email :: String, cpf :: String, birthdate :: String) ::
-          {:ok, t()} | {:error, reason :: atom()}
-  def build(name, email, cpf, birthdate) do
+  defp build(name, email, cpf, birthdate) do
     with {:ok, date} <- valid_birthdate?(birthdate),
          {:email, true} <- {:email, valid_email?(email)},
          {:ok, :ok} <- valid_cpf?(cpf) do
