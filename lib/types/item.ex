@@ -18,7 +18,7 @@ defmodule Exlivery.Types.Item do
   @spec build(
           name :: String,
           quantity :: integer(),
-          unity_price :: integer(),
+          unity_price :: String,
           description :: String,
           details :: String
         ) :: {:ok, t()} | {:error, :invalid_params}

@@ -5,6 +5,7 @@ defmodule Exlivery.Types.Order do
 
   alias Exlivery.Types.Item
   alias Exlivery.Types.User
+  alias Exlivery.OrderAgent
 
   @enforce_keys [:user_cpf, :delivery_address, :items, :total_price]
 
@@ -18,26 +19,45 @@ defmodule Exlivery.Types.Order do
           total_price: integer()
         }
 
-  @spec build(
+  @spec create(
           user_cpf :: String,
           delivery_address :: String,
           items :: List
         ) :: {:ok, t()} | {:error, :invalid_params}
-  def build(%User{cpf: cpf}, delivery_address, [%Item{} | _] = items) do
+  def create(%User{cpf: user_cpf}, delivery_address, [%Item{} | _] = items) do
+    with {:ok, order} <- build(user_cpf, delivery_address, items),
+         {:ok} <- OrderAgent.save(order) do
+      {:ok, :user_created}
+    else
+      error -> error
+    end
+  end
+
+  def update(%User{cpf: user_cpf}, data) do
+    with {:ok, order} <- OrderAgent.get(user_cpf),
+         data <- Map.merge(data, order),
+         {:ok, user_updated} = d <- OrderAgent.save(data) do
+      {:ok, data}
+    else
+      error -> error
+    end
+  end
+
+  defp build(user_cpf, delivery_address, [%Item{} | _] = items) do
     {:ok,
      %__MODULE__{
        id: UUID.uuid4(),
-       user_cpf: cpf,
+       user_cpf: user_cpf,
        delivery_address: delivery_address,
        items: items,
        total_price: total_price(items)
      }}
   end
 
-  def build(_user_cpf, _delivery_address, _items), do: {:error, :invalid_params}
+  defp build(_user_cpf, _delivery_address, _items), do: {:error, :invalid_params}
 
-  defp total_price(items), do: Enum.reduce(items, Decimal.new("0.00"), &sum_prices/2)
+  def total_price(items), do: Enum.reduce(items, Decimal.new("0.00"), &sum_prices/2)
 
-  defp sum_prices(%Item{unity_price: unity_price, quantity: quantity}, acc),
+  def sum_prices(%Item{unity_price: unity_price, quantity: quantity}, acc),
     do: Decimal.add(Item.total_price(unity_price, quantity), acc)
 end
