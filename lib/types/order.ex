@@ -34,9 +34,9 @@ defmodule Exlivery.Types.Order do
   end
 
   @spec update(
-    user_cpf :: String,
-    data :: map()
-  ) :: {:ok, data :: t()} | {:error, :invalid_params}
+          user_cpf :: String,
+          data :: map()
+        ) :: {:ok, data :: t()} | {:error, :invalid_params}
   def update(%User{cpf: user_cpf}, data) do
     with {:ok, order} <- OrderAgent.get(user_cpf),
          data <- Map.merge(data, order),
