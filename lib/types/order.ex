@@ -23,7 +23,7 @@ defmodule Exlivery.Types.Order do
           user_cpf :: String,
           delivery_address :: String,
           items :: List
-        ) :: {:ok, t()} | {:error, :invalid_params}
+        ) :: {:ok, :user_created} | {:error, :invalid_params}
   def create(%User{cpf: user_cpf}, delivery_address, [%Item{} | _] = items) do
     with {:ok, order} <- build(user_cpf, delivery_address, items),
          {:ok} <- OrderAgent.save(order) do
@@ -33,10 +33,14 @@ defmodule Exlivery.Types.Order do
     end
   end
 
+  @spec update(
+    user_cpf :: String,
+    data :: map()
+  ) :: {:ok, data :: t()} | {:error, :invalid_params}
   def update(%User{cpf: user_cpf}, data) do
     with {:ok, order} <- OrderAgent.get(user_cpf),
          data <- Map.merge(data, order),
-         {:ok, user_updated} = d <- OrderAgent.save(data) do
+         {:ok, _order_updated} <- OrderAgent.save(data) do
       {:ok, data}
     else
       error -> error
